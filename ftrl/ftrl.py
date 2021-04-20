@@ -55,14 +55,14 @@ class FTRL(Optimizer):
 
                 z, n = state["z"], state["n"]
 
-                theta = (n + grad ** 2).sqrt() / group["alpha"] - n.sqrt()
-                z.add_(grad - theta * p.data)
+                sigma = ((n + grad ** 2).sqrt() - n.sqrt()) / group["alpha"]
+                z.add_(grad - sigma * p.data)
                 n.add_(grad ** 2)
 
                 p.data = (
-                    -1
-                    / (group["l2"] + (group["beta"] + n.sqrt()) / group["alpha"])
-                    * (z - group["l1"] * z.sign())
+                        -1
+                        / (group["l2"] + (group["beta"] + n.sqrt()) / group["alpha"])
+                        * (z - group["l1"] * z.sign())
                 )
                 p.data[z.abs() < group["l1"]] = 0
 

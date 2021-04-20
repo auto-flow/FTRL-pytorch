@@ -9,7 +9,7 @@ from ftrl import FTRL
 # Hyperparameters
 batch_size = 100
 
-input_size = 784
+input_size = 64
 output_size = 10
 
 ftrl_alpha = 1.0
@@ -19,14 +19,7 @@ ftrl_l2 = 1.0
 
 
 # Dataset
-traindata = datasets.MNIST(
-    "./data", train=True, transform=transforms.ToTensor(), download=True
-)
-testdata = datasets.MNIST(
-    "./data", train=False, transform=transforms.ToTensor(), download=True
-)
-trainloader = DataLoader(traindata, batch_size=batch_size, shuffle=True)
-testloader = DataLoader(testdata, batch_size=batch_size, shuffle=False)
+from sklearn.datasets import load_digits
 
 
 # Model
@@ -47,32 +40,10 @@ optimizer = FTRL(
 )
 
 # Train
-for i, (images, labels) in enumerate(trainloader, 1):
-    images = images.view(-1, input_size)
-    optimizer.zero_grad()
-    outputs = model(images)
-    loss = loss_fn(outputs, labels)
-    loss.backward()
-    optimizer.step()
-
-    if i % 100 == 0:
-        with torch.no_grad():
-            total = len(testloader.dataset)
-            correct = 0
-            for images, labels in testloader:
-                images = images.view(-1, input_size)
-                outputs = model(images)
-                _, predicted = torch.max(outputs.data, 1)
-                correct += (predicted == labels).sum()
-            accuracy = 100 * correct / total
-
-            num_zeros = (
-                model.W.weight.eq(0).sum().item() + model.W.bias.eq(0).sum().item()
-            )
-            total_params = model.W.weight.numel() + model.W.bias.numel()
-            sparsity = num_zeros / total_params
-            print(
-                "Iteration: {}. Loss: {}. Accuracy: {}. Sparsity: {}".format(
-                    i, loss.item(), accuracy, sparsity
-                )
-            )
+X,y=load_digits(10,True)
+optimizer.zero_grad()
+y_pred=model(torch.from_numpy(X.astype('float32')))
+y_tensor=torch.from_numpy(y.astype('int64'))
+loss=loss_fn(y_pred,y_tensor)
+loss.backward()
+optimizer.step()
